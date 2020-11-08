@@ -24,13 +24,22 @@ export default {
     signIn: async (email, password) => {
         return  await doPost({email, password}, '/auth/login');
     },
+    logout: async (email, password) => {
+        const token = await AsyncStorage.getItem('token');
+        return  await doPost({token}, '/auth/logout');
+    },
     signUp: async (name, email, password) => {
         return await doPost({name, email, password}, '/user');
     },
     getBarbers: async (lat=null, lng=null, address=null) => {
         const token = await AsyncStorage.getItem('token');
-        console.log(`# URL:  ${BASE_API}/barbers?token=${token}&lat=${lat}&lng=${lng}&address=${address}`)
         const req = await fetch(`${BASE_API}/barbers?token=${token}&lat=${lat}&lng=${lng}&address=${address}`);
+        const json = await req.json();
+        return json;
+    },
+    getBarber: async (id) => {
+        const token = await AsyncStorage.getItem('token');
+        const req = await fetch(`${BASE_API}/barber/${id}?token=${token}`);
         const json = await req.json();
         return json;
     }
