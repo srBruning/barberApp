@@ -1,6 +1,5 @@
-import React, {useState, useEffect, useContext} from 'react'; 
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage'
+import React, {useState, useEffect} from 'react'; 
+import { Platform, RefreshControl } from 'react-native'; 
 import { request, PERMISSIONS } from 'react-native-permissions'
 import { useNavigation } from '@react-navigation/native';
 import GeoLocation from '@react-native-community/geolocation';
@@ -9,19 +8,13 @@ import {
     Container, Scroller,
     HeaderArea, HeaderTitle, SearchButton,
     LocationArea, LocationInput, LocationFinder,
-    LoadingIcon
+    LoadingIcon, ListArea
 } from './styles'
-import BarberLogo from '../../assets/barber.svg';  
-import {
-    SafeAreaView,
-    StyleSheet,
-    ScrollView,
-    View,
-    Text,
-    StatusBar,
-  } from 'react-native';
-  import SearchIcon from '../../assets/search.svg';
-  import MyLocationIcon from '../../assets/my_location.svg';
+
+import SearchIcon from '../../assets/search.svg';
+import MyLocationIcon from '../../assets/my_location.svg';
+
+import BarberItem from '../../components/BarberItem';
 
 
 export default () => {
@@ -31,10 +24,12 @@ export default () => {
     const [coords, setCoords] = useState(null);
     const [loading, setLoading] = useState(false);
     const [list, setList] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
     
     
     const handlerLocationFinder = async ()=>{
         setCoords(null);
+
         let result = await request(
             Platform.OS === 'ios' ?
                 PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
@@ -46,19 +41,27 @@ export default () => {
             setLoading(true);
             setLocationText('');
             setList([]);
-            GeoLocation.getCurrentPosition( (info)=>{
-                setCoords(info.coords);
-                getBarbers();
+            GeoLocation.getCurrentPosition( async (info)=>{
+                await setCoords(info.coords); 
+                getBarbers(info.coords);
             })
         }
 
     }
-    const getBarbers = async ()=>{
+    const getBarbers = async (icoords=null)=>{
         setLoading(true);
         setList([]);
+        if(!icoords)
+            icoords = coords;
 
-        let res = await Api.getBarbers();
-        console.log(res);
+        let lat = null;
+        let lng = null;
+        if(icoords){
+            lat = icoords.latitude;
+            lng = icoords.longitude;
+        }
+
+        let res = await Api.getBarbers(lat, lng, locationText);
         if(res.error ===''){
             setList(res.data);
             if(res.loc)
@@ -70,13 +73,26 @@ export default () => {
 
     }
 
+    const onRefresh = () => {
+        setRefreshing(false);
+        getBarbers();
+    }
+
+    const handlerLocationSearch = ()=>{
+        setCoords(null);
+        getBarbers();
+    }
+
     useEffect(()=>{
         getBarbers()
     }, []);
 
     return (
         <Container>
-            <Scroller>
+            <Scroller refreshControl={
+                <RefreshControl  refreshing={refreshing} onRefresh={onRefresh} />
+            }>
+
                 <HeaderArea>
                     <HeaderTitle numberOfLines={2}>Encontre o seu barbeiro favorito</HeaderTitle>
                     <SearchButton onPress={()=> navigation.navigate('Search')}>
@@ -90,6 +106,7 @@ export default () => {
                         placeholderTextColor="#FFFFFF"
                         value={locationText}
                         onChangeText={t=> setLocationText(t)}
+                        onEndEditing={handlerLocationSearch}
                     />
                     <LocationFinder onPress={handlerLocationFinder}>
                         <MyLocationIcon width='24' height='24' fill='#FFFFFF'/>
@@ -99,6 +116,15 @@ export default () => {
                 {loading && 
                     <LoadingIcon size="large" color="#FFFFFF" />
                 }
+
+                <ListArea>
+                    {list.map((item, k)=>(
+                            <BarberItem key={k} data={item} />
+                        )
+                    )}
+                </ListArea>
+
+
             </Scroller>
         </Container>
     );

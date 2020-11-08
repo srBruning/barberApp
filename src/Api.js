@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-community/async-storage';
-import { add } from 'react-native-reanimated';
+import { add } from 'react-native-reanimated'; 
 
 const BASE_API = 'https://api.b7web.com.br/devbarber/api';
 
@@ -29,7 +29,7 @@ export default {
     },
     getBarbers: async (lat=null, lng=null, address=null) => {
         const token = await AsyncStorage.getItem('token');
-
+        console.log(`# URL:  ${BASE_API}/barbers?token=${token}&lat=${lat}&lng=${lng}&address=${address}`)
         const req = await fetch(`${BASE_API}/barbers?token=${token}&lat=${lat}&lng=${lng}&address=${address}`);
         const json = await req.json();
         return json;
