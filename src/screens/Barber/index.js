@@ -1,7 +1,21 @@
 import React, {useEffect, useContext, useState} from 'react'; 
 import {useNavigation, useRoute}  from '@react-navigation/native'
 import AsyncStorage from '@react-native-community/async-storage'
-import {Container, LoadingIcon} from './styles'
+import {
+    Container,
+    Scroller, 
+
+    FakeSwiper,
+    SwipeDot,
+    SwipeDotActive,
+    SwiperItem, 
+    SwiperImage,
+
+    PageBody,
+    UserInfoArea,
+    ServiceArea,
+    TestimonialArea,
+} from './styles'
 import BarberLogo from '../../assets/barber.svg';  
 import Api from '../../Api';
 import Swiper from 'react-native-swiper';
@@ -13,6 +27,7 @@ import {
     Text,
     StatusBar,
   } from 'react-native';
+  
 export default () => {
     const navigation =  useNavigation();
     const route = useRoute();
@@ -30,6 +45,7 @@ export default () => {
             let json = await Api.getBarber(userInfo.id);
             if(json.error == ''){
                 setUserInfo(json.data);
+                console.log(json)
             }else {
                 alert("Erro: "+json.error);
             }
@@ -41,8 +57,37 @@ export default () => {
 
     return (
         <Container>
-            <BarberLogo width="100%" height="160" /> 
-            <Text>Barbeiro: {userInfo.name}</Text>    
+            <Scroller>
+                { userInfo.photos && userInfo.photos.length > 0 ?
+                    <Swiper
+                        style={{height:240}}
+                        dot={<SwipeDot/>}
+                        activeDot={<SwipeDotActive/>}
+                        paginationStyle={{top: 15, right:15, bottom:null, left: null}}
+                        autoplay={true}
+                    >
+                        {userInfo.photos.map((item, k) => (
+                            <SwiperItem>
+                                <SwiperImage source={{uri:item.url}} resizeModel="cover" />
+                            </SwiperItem>
+                        ))}
+                    </Swiper>
+                    :
+                    <FakeSwiper></FakeSwiper>
+                }
+
+                <PageBody>
+                    <UserInfoArea>
+
+                    </UserInfoArea>
+                    <ServiceArea>
+
+                    </ServiceArea>
+                    <TestimonialArea>
+
+                    </TestimonialArea>
+                </PageBody>
+            </Scroller>
         </Container>
     );
 }
