@@ -15,6 +15,11 @@ import {
     UserInfoArea,
     ServiceArea,
     TestimonialArea,
+
+    UserAvatar, 
+    UserInfo, 
+    UserInfoName, 
+    UserFavButton
 } from './styles'
 import BarberLogo from '../../assets/barber.svg';  
 import Api from '../../Api';
@@ -27,7 +32,10 @@ import {
     Text,
     StatusBar,
   } from 'react-native';
-  
+import Stars from '../../components/Stars';
+import FavoriteIcon from '../../assets/favorite.svg';
+
+
 export default () => {
     const navigation =  useNavigation();
     const route = useRoute();
@@ -78,7 +86,14 @@ export default () => {
 
                 <PageBody>
                     <UserInfoArea>
-
+                        <UserAvatar source={{uri: userInfo.avatar}}/>
+                        <UserInfo>
+                            <UserInfoName>{userInfo.name}</UserInfoName>
+                            <Stars stars={userInfo.stars} showNumber={true}/>
+                        </UserInfo>
+                        <UserFavButton >
+                            <FavoriteIcon width="24" height="24" fill="#FF0000" />
+                        </UserFavButton>
                     </UserInfoArea>
                     <ServiceArea>
 
